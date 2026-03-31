@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisuTek AR — Select Model</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white: #ffffff;
+  --black: #0a0a0a;
+  --grey-02: #f7f7f7;
+  --grey-05: #f2f2f2;
+  --grey-10: #e2e2e2;
+  --grey-20: #c8c8c8;
+  --grey-50: #7a7a7a;
+  --grey-60: #606060;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --border: 0.5px solid var(--grey-10);
+  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--white);
+  color: var(--black);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 64px;
+  letter-spacing: 0.12em;
+  color: var(--black);
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-60);
+}
+
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 48px;
+  margin-bottom: 80px;
+}
+
+.model-card {
+  background: var(--grey-02);
+  border: var(--border);
+  padding: 80px 48px;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  color: var(--black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.model-card:hover {
+  background: var(--grey-05);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(10,10,10,0.1);
+}
+
+.model-icon {
+  font-size: 120px;
+  line-height: 1;
+}
+
+.model-title {
+  font-family: var(--font-display);
+  font-size: 48px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.model-desc {
+  font-size: 14px;
+  color: var(--grey-60);
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+.model-cta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--grey-50);
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: var(--border);
+  width: 100%;
+}
+
+.info-section {
+  background: var(--black);
+  color: var(--white);
+  padding: 64px 48px;
+  text-align: center;
+}
+
+.info-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  color: rgba(255,255,255,0.6);
+}
+
+.info-content {
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 800px;
+  margin: 0 auto;
+  color: rgba(255,255,255,0.9);
+}
+
+.features-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 32px;
+  margin-top: 48px;
+  text-align: left;
+}
+
+.feature-item {
+  padding: 24px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.feature-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 12px;
+}
+
+.feature-value {
+  font-size: 14px;
+  color: var(--white);
+}
+
+@media (max-width: 768px) {
+  .model-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .logo {
+    font-size: 48px;
+  }
+  
+  .model-card {
+    padding: 64px 32px;
+  }
+  
+  .model-icon {
+    font-size: 80px;
+  }
+  
+  .model-title {
+    font-size: 36px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">VISUTEK AR</div>
+    <div class="subtitle">Next-Generation Product Visualization</div>
+  </div>
+  
+  <!-- Model Selection -->
+  <div class="model-grid">
+    <a href="condition3-ar-mens.html" class="model-card">
+      <div class="model-icon">👔</div>
+      <div class="model-title">Men's Fit</div>
+      <div class="model-desc">
+        View the Powderverse Pants designed for men's athletic build with extended inseam and tailored cut
+      </div>
+      <div class="model-cta">View in 3D & AR →</div>
+    </a>
+    
+    <a href="condition3-ar-womens.html" class="model-card">
+      <div class="model-icon">👗</div>
+      <div class="model-title">Women's Fit</div>
+      <div class="model-desc">
+        View the Powderverse Pants designed for women's athletic build with optimized rise and contoured fit
+      </div>
+      <div class="model-cta">View in 3D & AR →</div>
+    </a>
+  </div>
+  
+  <!-- Info Section -->
+  <div class="info-section">
+    <div class="info-title">What You'll Experience</div>
+    <div class="info-content">
+      Each model features full 3D visualization with augmented reality capabilities. 
+      Explore technical specifications through interactive hotspots, view the product 
+      in different environments, and on mobile devices, place the pants in your actual 
+      space using your camera.
+    </div>
+    
+    <div class="features-list">
+      <div class="feature-item">
+        <div class="feature-label">Desktop Experience</div>
+        <div class="feature-value">Interactive 3D viewer with drag-to-rotate and zoom controls</div>
+      </div>
+      
+      <div class="feature-item">
+        <div class="feature-label">Mobile Experience</div>
+        <div class="feature-value">Full AR via camera — place product in your space</div>
+      </div>
+      
+      <div class="feature-item">
+        <div class="feature-label">Technical Details</div>
+        <div class="feature-value">5 interactive hotspots with performance ratings and specs</div>
+      </div>
+      
+      <div class="feature-item">
+        <div class="feature-label">Customization</div>
+        <div class="feature-value">Real-time color changes and environment switching</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
