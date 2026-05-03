@@ -1,0 +1,9 @@
+api_version = "2024-04"
+
+[[extensions]]
+type = "theme"
+name = "VisuTek 3D Viewer"
+handle = "visutek-3d-viewer"
+
+  [extensions.development]
+    root_dir = "."

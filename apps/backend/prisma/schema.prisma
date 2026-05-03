@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  free
+  starter
+  pro
+}
+
+enum UploadStatus {
+  pending
+  processing
+  ready
+  error
+}
+
+enum Gender {
+  mens
+  womens
+  unisex
+}
+
+enum MeasurementUnit {
+  in
+  cm
+}
+
+model Store {
+  id             String    @id @default(uuid())
+  shopifyDomain  String    @unique
+  accessToken    String?
+  plan           Plan      @default(free)
+  installedAt    DateTime  @default(now())
+  uninstalledAt  DateTime?
+
+  users          User[]
+  configs        ViewerConfig[]
+
+  @@map("stores")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  storeId      String?
+  store        Store?   @relation(fields: [storeId], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+}
+
+model ViewerConfig {
+  id                 String   @id @default(uuid())
+  storeId            String
+  store              Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  shopifyProductId   String?
+  name               String
+  active             Boolean  @default(true)
+  showBranding       Boolean  @default(true)
+  backgroundColor    String   @default("#f0efec")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  models             Model[]
+  colorOptions       ColorOption[]
+  sizeCharts         SizeChart[]
+  variantMappings    VariantMapping[]
+
+  @@map("viewer_configs")
+}
+
+model Model {
+  id            String       @id @default(uuid())
+  configId      String
+  config        ViewerConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  label         String
+  s3Key         String
+  fileSizeBytes BigInt       @default(0)
+  uploadStatus  UploadStatus @default(pending)
+  createdAt     DateTime     @default(now())
+
+  @@map("models")
+}
+
+model ColorOption {
+  id        String       @id @default(uuid())
+  configId  String
+  config    ViewerConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  name      String
+  hexValue  String
+  sortOrder Int          @default(0)
+  isDefault Boolean      @default(false)
+
+  variantMappings VariantMapping[]
+
+  @@map("color_options")
+}
+
+model SizeChart {
+  id        String          @id @default(uuid())
+  configId  String
+  config    ViewerConfig    @relation(fields: [configId], references: [id], onDelete: Cascade)
+  label     String
+  gender    Gender          @default(unisex)
+  unit      MeasurementUnit @default(in)
+  chartData Json
+  easeData  Json
+
+  @@map("size_charts")
+}
+
+model VariantMapping {
+  id                String       @id @default(uuid())
+  configId          String
+  config            ViewerConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  shopifyVariantId  String
+  size              String
+  colorOptionId     String?
+  colorOption       ColorOption? @relation(fields: [colorOptionId], references: [id], onDelete: SetNull)
+  priceOverride     Decimal?
+
+  @@unique([configId, shopifyVariantId])
+  @@map("variant_mappings")
+}
