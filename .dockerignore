@@ -1,0 +1,11 @@
+node_modules
+.next
+dist
+.turbo
+*.log
+.env
+.env.local
+.git
+coverage
+mens_model.glb
+womens_model.glb

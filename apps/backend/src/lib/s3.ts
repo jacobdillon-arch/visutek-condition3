@@ -12,7 +12,11 @@ const s3 = new S3Client({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
   },
-  ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),
+  // MinIO / R2 local dev: use custom endpoint with path-style URLs
+  ...(process.env.S3_ENDPOINT ? {
+    endpoint: process.env.S3_ENDPOINT,
+    forcePathStyle: process.env.S3_FORCE_PATH_STYLE === 'true',
+  } : {}),
 });
 
 const BUCKET = process.env.S3_BUCKET!;
@@ -38,7 +42,13 @@ export async function presignUpload(key: string, contentType = 'model/gltf-binar
 /** Returns a presigned GET URL for the viewer to stream the GLB (1-hour TTL) */
 export async function presignDownload(key: string, expiresIn = 3600): Promise<string> {
   const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
-  return getSignedUrl(s3, cmd, { expiresIn });
+  const url = await getSignedUrl(s3, cmd, { expiresIn });
+  // In Docker dev, MinIO is reachable internally as http://minio:9000 but the
+  // browser needs http://localhost:9000 — rewrite the host for local dev.
+  if (process.env.S3_PUBLIC_ENDPOINT) {
+    return url.replace(process.env.S3_ENDPOINT!, process.env.S3_PUBLIC_ENDPOINT);
+  }
+  return url;
 }
 
 export async function deleteObject(key: string): Promise<void> {
