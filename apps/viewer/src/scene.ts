@@ -1,5 +1,3 @@
-/// <reference types="./types" />
-
 const THREE = window.THREE;
 
 export interface SceneObjects {
@@ -29,7 +27,6 @@ export function initScene(backgroundColor: string): SceneObjects {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.25;
 
-  // Studio 6-point lighting rig
   const hemi = new THREE.HemisphereLight(0xdde8f0, 0xd4c8a8, 0.65);
   scene.add(hemi);
 
@@ -58,7 +55,6 @@ export function initScene(backgroundColor: string): SceneObjects {
   kick.position.set(-3, 0.5, -1);
   scene.add(kick);
 
-  // Shadow plane
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(8, 8),
     new THREE.ShadowMaterial({ opacity: 0.18 })
@@ -123,7 +119,6 @@ export function setupOrbitControls(
   });
   window.addEventListener('mouseup', () => { isDragging = false; });
 
-  // Touch
   let lastTouchX = 0;
   canvas.addEventListener('touchstart', (e) => { lastTouchX = e.touches[0].clientX; onDragStart(); }, { passive: true });
   canvas.addEventListener('touchmove', (e) => {
