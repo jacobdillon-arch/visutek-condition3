@@ -1,168 +1,129 @@
-// ─── Store ─────────────────────────────────────────────────────────────────
+const THREE = window.THREE;
 
-export interface Store {
-  id: string;
-  shopifyDomain: string;
-  plan: PlanName;
-  installedAt: Date;
-  uninstalledAt: Date | null;
+export interface SceneObjects {
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  renderer: THREE.WebGLRenderer;
+  pantGroup: THREE.Group;
+  canvas: HTMLCanvasElement;
+  wrap: HTMLElement;
 }
 
-// ─── Viewer Config ─────────────────────────────────────────────────────────
+export function initScene(backgroundColor: string): SceneObjects {
+  const canvas = document.getElementById('visutek-canvas') as HTMLCanvasElement;
+  const wrap = canvas.parentElement as HTMLElement;
 
-export interface ViewerConfig {
-  id: string;
-  storeId: string;
-  shopifyProductId: string | null;
-  name: string;
-  active: boolean;
-  showBranding: boolean;
-  backgroundColor: string;
-  createdAt: Date;
-  models: Model[];
-  colorOptions: ColorOption[];
-  sizeCharts: SizeChart[];
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(backgroundColor);
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.01, 50);
+  camera.position.set(0, 0, 4.8);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.25;
+
+  const hemi = new THREE.HemisphereLight(0xdde8f0, 0xd4c8a8, 0.65);
+  scene.add(hemi);
+
+  const key = new THREE.DirectionalLight(0xfff8f0, 3.2);
+  key.position.set(-2, 4, 2.5);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.left = -2; key.shadow.camera.right = 2;
+  key.shadow.camera.top = 3;   key.shadow.camera.bottom = -3;
+  key.shadow.camera.far = 18;  key.shadow.radius = 8; key.shadow.bias = -0.0002;
+  scene.add(key);
+
+  const fill = new THREE.DirectionalLight(0xc8ddf5, 1.1);
+  fill.position.set(3, 1, 1);
+  scene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0xa8c8e8, 0.7);
+  rim.position.set(0.5, 2, -4);
+  scene.add(rim);
+
+  const bnc = new THREE.DirectionalLight(0xf0e4cc, 0.45);
+  bnc.position.set(0, -2, 1);
+  scene.add(bnc);
+
+  const kick = new THREE.DirectionalLight(0xffe8c8, 0.35);
+  kick.position.set(-3, 0.5, -1);
+  scene.add(kick);
+
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(8, 8),
+    new THREE.ShadowMaterial({ opacity: 0.18 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -1.5;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  const pantGroup = new THREE.Group();
+  scene.add(pantGroup);
+
+  function resize() {
+    const W = wrap.clientWidth || 800;
+    const H = wrap.clientHeight || 600;
+    renderer.setSize(W, H);
+    camera.aspect = W / H;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  new ResizeObserver(resize).observe(wrap);
+  window.addEventListener('resize', resize);
+
+  return { scene, camera, renderer, pantGroup, canvas, wrap };
 }
 
-// ─── Models ────────────────────────────────────────────────────────────────
-
-export type ModelUploadStatus = 'pending' | 'processing' | 'ready' | 'error';
-
-export interface Model {
-  id: string;
-  configId: string;
-  label: string;
-  s3Key: string;
-  fileSizeBytes: number;
-  uploadStatus: ModelUploadStatus;
-  /** Presigned URL — only present in viewer responses, never persisted */
-  presignedUrl?: string;
-  createdAt: Date;
+export function startRenderLoop(
+  renderer: THREE.WebGLRenderer,
+  scene: THREE.Scene,
+  camera: THREE.PerspectiveCamera,
+  pantGroup: THREE.Group,
+  getAutoSpin: () => boolean,
+): void {
+  function animate() {
+    requestAnimationFrame(animate);
+    if (getAutoSpin()) {
+      pantGroup.rotation.y += 0.004;
+    }
+    renderer.render(scene, camera);
+  }
+  animate();
 }
 
-// ─── Colors ────────────────────────────────────────────────────────────────
+export function setupOrbitControls(
+  canvas: HTMLCanvasElement,
+  pantGroup: THREE.Group,
+  onDragStart: () => void,
+): void {
+  let isDragging = false;
+  let lastX = 0;
+  let lastY = 0;
 
-export interface ColorOption {
-  id: string;
-  configId: string;
-  name: string;
-  hexValue: string;
-  sortOrder: number;
-  isDefault: boolean;
+  canvas.addEventListener('mousedown', (e) => { isDragging = true; lastX = e.clientX; lastY = e.clientY; onDragStart(); });
+  canvas.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    pantGroup.rotation.y += dx * 0.008;
+    pantGroup.rotation.x += dy * 0.008;
+    pantGroup.rotation.x = Math.max(-0.6, Math.min(0.6, pantGroup.rotation.x));
+    lastX = e.clientX; lastY = e.clientY;
+  });
+  window.addEventListener('mouseup', () => { isDragging = false; });
+
+  let lastTouchX = 0;
+  canvas.addEventListener('touchstart', (e) => { lastTouchX = e.touches[0].clientX; onDragStart(); }, { passive: true });
+  canvas.addEventListener('touchmove', (e) => {
+    const dx = e.touches[0].clientX - lastTouchX;
+    pantGroup.rotation.y += dx * 0.008;
+    lastTouchX = e.touches[0].clientX;
+  }, { passive: true });
 }
-
-// ─── Size Charts ───────────────────────────────────────────────────────────
-
-export type Gender = 'mens' | 'womens' | 'unisex';
-export type MeasurementUnit = 'in' | 'cm';
-
-export interface SizeEntry {
-  waist: [number, number];
-  hip: [number, number];
-  inseam: {
-    short: number;
-    reg: number;
-    tall: number;
-  };
-}
-
-export type SizeChartData = Record<string, SizeEntry>;
-
-export interface EaseData {
-  waist: number;
-  hip: number;
-}
-
-export interface SizeChart {
-  id: string;
-  configId: string;
-  label: string;
-  gender: Gender;
-  unit: MeasurementUnit;
-  chartData: SizeChartData;
-  easeData: EaseData;
-}
-
-// ─── Variant Mappings ──────────────────────────────────────────────────────
-
-export interface VariantMapping {
-  id: string;
-  configId: string;
-  shopifyVariantId: string;
-  size: string;
-  colorOptionId: string | null;
-  priceOverride: number | null;
-}
-
-// ─── Viewer Payload (sent to iframe) ──────────────────────────────────────
-
-export interface ViewerPayload {
-  configId: string;
-  backgroundColor: string;
-  showBranding: boolean;
-  models: Array<{
-    id: string;
-    label: string;
-    presignedUrl: string;
-  }>;
-  colorOptions: ColorOption[];
-  sizeCharts: SizeChart[];
-  variantMappings: VariantMapping[];
-}
-
-// ─── API Shapes ────────────────────────────────────────────────────────────
-
-export interface CreateConfigInput {
-  name: string;
-  shopifyProductId?: string;
-  backgroundColor?: string;
-}
-
-export interface UpdateConfigInput {
-  name?: string;
-  shopifyProductId?: string;
-  active?: boolean;
-  backgroundColor?: string;
-  showBranding?: boolean;
-}
-
-export interface CreateColorInput {
-  name: string;
-  hexValue: string;
-  isDefault?: boolean;
-}
-
-export interface CreateSizeChartInput {
-  label: string;
-  gender: Gender;
-  unit: MeasurementUnit;
-  chartData: SizeChartData;
-  easeData: EaseData;
-}
-
-export interface UploadModelInput {
-  configId: string;
-  label: string;
-}
-
-export interface UploadPresignResponse {
-  uploadUrl: string;
-  modelId: string;
-  s3Key: string;
-}
-
-// ─── Auth ──────────────────────────────────────────────────────────────────
-
-export interface AdminUser {
-  id: string;
-  email: string;
-  name: string | null;
-  storeId: string | null;
-}
-
-// ─── postMessage bridge (viewer ↔ Shopify parent) ─────────────────────────
-
-export type CartBridgeMessage =
-  | { action: 'visutek:add_to_cart'; variantId: string; quantity: number }
-  | { action: 'visutek:ready' }
-  | { action: 'visutek:resize'; height: number };
